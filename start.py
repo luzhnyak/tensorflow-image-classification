@@ -3,6 +3,8 @@ from tensorflow.keras import layers, models
 import matplotlib.pyplot as plt
 import numpy as np
 
+print(tf.config.list_physical_devices('GPU'))
+
 # Завантаження даних
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
 
