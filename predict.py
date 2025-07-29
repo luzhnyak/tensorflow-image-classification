@@ -10,9 +10,9 @@ from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
 # 🔽 Параметри
 img_size = (224, 224)
-test_folder = "test_data/"  # Папка з зображеннями
-model_path = "models/my_model.keras"
-class_names = sorted(os.listdir("data/catvsdog100/"))  # ['cats', 'dogs']
+test_folder = "data/catvsdog100/test/"  # Папка з зображеннями
+model_path = "models/fine_tuned_model.keras"
+class_names = sorted(os.listdir("data/catvsdog100/train/"))  # ['cats', 'dogs']
 
 # 📦 Завантаження моделі
 model = load_model(model_path)

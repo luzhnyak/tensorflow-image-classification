@@ -9,6 +9,8 @@ from tensorflow.keras import layers, models
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras.optimizers import Adam
 import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -18,27 +20,56 @@ warnings.filterwarnings("ignore", category=UserWarning)
 img_size = (224, 224)
 batch_size = 32
 data_dir = "data/catvsdog100/"
+train_dir = "data/catvsdog100/train"
+val_dir = "data/catvsdog100/val"
 
 # 📊 Завантаження даних
-datagen = ImageDataGenerator(
-    preprocessing_function=preprocess_input, validation_split=0.2
+# datagen = ImageDataGenerator(
+#     preprocessing_function=preprocess_input, validation_split=0.2
+# )
+
+val_datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
+
+train_datagen = ImageDataGenerator(
+    preprocessing_function=preprocess_input,
+    rotation_range=20,
+    width_shift_range=0.1,
+    height_shift_range=0.1,
+    zoom_range=0.1,
+    horizontal_flip=True,
 )
 
-train_generator = datagen.flow_from_directory(
-    data_dir,
+# train_generator = datagen.flow_from_directory(
+#     data_dir,
+#     target_size=img_size,
+#     batch_size=batch_size,
+#     class_mode="categorical",
+#     subset="training",
+#     shuffle=True,
+# )
+
+# val_generator = datagen.flow_from_directory(
+#     data_dir,
+#     target_size=img_size,
+#     batch_size=batch_size,
+#     class_mode="categorical",
+#     subset="validation",
+# )
+
+train_generator = train_datagen.flow_from_directory(
+    train_dir,
     target_size=img_size,
     batch_size=batch_size,
     class_mode="categorical",
-    subset="training",
     shuffle=True,
 )
 
-val_generator = datagen.flow_from_directory(
-    data_dir,
+val_generator = val_datagen.flow_from_directory(
+    val_dir,
     target_size=img_size,
     batch_size=batch_size,
     class_mode="categorical",
-    subset="validation",
+    shuffle=False,
 )
 
 # 📦 Кількість класів
@@ -51,24 +82,67 @@ base_model = MobileNetV2(
 )
 base_model.trainable = False
 
-inputs = tf.keras.Input(shape=(224, 224, 3))
-x = base_model(inputs, training=False)
+x = base_model.output
 x = layers.GlobalAveragePooling2D()(x)
-x = layers.Dense(128, activation="relu")(x)
+x = layers.Dense(256, activation="relu")(x)
 x = layers.Dropout(0.3)(x)
-outputs = layers.Dense(num_classes, activation="softmax")(x)
+output = layers.Dense(num_classes, activation="softmax")(x)
 
-model = tf.keras.Model(inputs, outputs)
+# inputs = tf.keras.Input(shape=(224, 224, 3))
+# x = base_model(inputs, training=False)
+# x = layers.GlobalAveragePooling2D()(x)
+# x = layers.Dense(128, activation="relu")(x)
+# x = layers.Dropout(0.3)(x)
+# outputs = layers.Dense(num_classes, activation="softmax")(x)
+
+# model = tf.keras.Model(inputs, outputs)
+
+model = tf.keras.Model(inputs=base_model.input, outputs=output)
 
 # ⚙️ Компіляція
 model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
 
 # 🏋️‍♂️ Навчання
-history = model.fit(train_generator, validation_data=val_generator, epochs=10)
+# history = model.fit(train_generator, validation_data=val_generator, epochs=10)
+
+
+history = model.fit(
+    train_generator,
+    validation_data=val_generator,
+    epochs=10,
+    callbacks=[
+        EarlyStopping(patience=3, restore_best_weights=True),
+        ModelCheckpoint("models/base_model.keras", save_best_only=True),
+    ],
+)
 
 # 💾 Збереження моделі
-os.makedirs("models", exist_ok=True)
-model.save("models/my_model.keras")
+# os.makedirs("models", exist_ok=True)
+# model.save("models/my_model.keras")
+
+
+# === Розморожування верхніх шарів для fine-tuning ===
+base_model.trainable = True
+for layer in base_model.layers[:-50]:
+    layer.trainable = False
+
+model.compile(
+    optimizer=Adam(1e-5), loss="categorical_crossentropy", metrics=["accuracy"]
+)
+
+print("\n=== Fine-tuning верхніх шарів ===")
+model.fit(
+    train_generator,
+    validation_data=val_generator,
+    epochs=5,
+    verbose=1,
+    callbacks=[
+        EarlyStopping(patience=3, restore_best_weights=True),
+        ModelCheckpoint("models/fine_tuned_model.keras", save_best_only=True),
+    ],
+)
+
+print("\n✅ Навчання завершено. Модель збережено у: models/fine_tuned_model.keras")
 
 
 # 📈 Побудова графіків
