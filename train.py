@@ -5,12 +5,14 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
+
 from tensorflow.keras import layers, models
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.optimizers import Adam
+
 import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning)

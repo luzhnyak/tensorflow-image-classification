@@ -1,9 +1,9 @@
 import os
 import shutil
 import numpy as np
-from tensorflow.keras.preprocessing import image
-from tensorflow.keras.models import load_model
-from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+from keras.preprocessing import image
+from keras.models import load_model
+from keras.applications.mobilenet_v2 import preprocess_input
 
 # 🔽 Параметри
 img_size = (224, 224)

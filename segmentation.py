@@ -3,9 +3,10 @@ import numpy as np
 from PIL import Image
 import torch
 from transformers import DetrImageProcessor, DetrForObjectDetection
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image as keras_image
-from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+
+from keras.models import load_model
+from keras.preprocessing import image as keras_image
+from keras.applications.mobilenet_v2 import preprocess_input
 
 # Завантаження моделей
 seg_model_id = "facebook/detr-resnet-50"
