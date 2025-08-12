@@ -1,17 +1,30 @@
 # tensorflow-image-classification
 tensorflow-image-classification
 
-## Створення віртуального середовища
+### 2. Create and activate a virtual environment
 
-```
+```bash
 python -m venv venv
-venv\scripts\activate
+```
+
+Activate the virtual environment:
+
+On Windows:
+```bash
+venv\Scripts\activate
+```
+
+On macOS/Linux:
+```bash
 source venv/bin/activate
 ```
 
-## Команди для встановлення залежностей:
+## Dependencies installation:
 
-```
+```bash
 pip install -r requirements.txt
+```
+
+```bash
 pip freeze > requirements.txt
 ```
